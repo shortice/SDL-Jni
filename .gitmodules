@@ -1,0 +1,6 @@
+[submodule "app/jni/SDL"]
+	path = app/jni/SDL
+	url = https://github.com/libsdl-org/SDL
+[submodule "app/jni/imgui"]
+	path = app/jni/imgui
+	url = https://github.com/ocornut/imgui
