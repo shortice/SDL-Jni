@@ -1,5 +1,7 @@
 # SDL-Jni
 
+⚠️ Article in the link of this repository written in Russian. And screenshot the same.
+
 Sample code how use JNI in SDL3.
 This code implement the simple notification API for SDL (including Android API 26+
 and new notification permission).
