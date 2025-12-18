@@ -63,62 +63,6 @@ public class SDLActivity
     extends Activity
     implements View.OnSystemUiVisibilityChangeListener {
 
-    // Code for notification accessed by the JNI code on android_jni.cpp
-
-    private void createNotificationChannel() {
-        // https://developer.android.com/develop/ui/views/notifications#ManageChannels
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Notifications";
-            String description = "All notifications";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(
-                "Shortice",
-                name,
-                importance
-            );
-            channel.setDescription(description);
-            NotificationManager notificationManager = getSystemService(
-                NotificationManager.class
-            );
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-    private Notification.Builder createNotificationBuilder() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return new Notification.Builder(getContext(), "Shortice");
-        } else {
-            return new Notification.Builder(getContext());
-        }
-    }
-
-    private NotificationManager getNotificationManager() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return getSystemService(NotificationManager.class);
-        } else {
-            return (NotificationManager) getSystemService(
-                Context.NOTIFICATION_SERVICE
-            );
-        }
-    }
-
-    public void PushNotification(String title, String text) {
-        Notification.Builder builder = createNotificationBuilder();
-
-        builder.setSmallIcon(R.drawable.ic_launcher);
-        builder.setContentTitle(title);
-        builder.setContentText(text);
-
-        NotificationManager notificationManager = getNotificationManager();
-
-        // id - id of the notification
-        notificationManager.notify(1, builder.build());
-    }
-
-    //
-    // End code
-    //
-
     private static final String TAG = "SDL";
     private static final int SDL_MAJOR_VERSION = 3;
     private static final int SDL_MINOR_VERSION = 2;
@@ -327,7 +271,7 @@ public class SDLActivity
             "SDL",
             "Running main function " + function + " from library " + library
         );
-        createNotificationChannel(); // Register notification channel
+
         SDLActivity.nativeRunMain(library, function, arguments);
         Log.v("SDL", "Finished main function");
     }

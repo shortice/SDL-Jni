@@ -13,6 +13,8 @@ endif()
 
 add_subdirectory(SDL)
 
+find_package(jila-android REQUIRED CONFIG)
+
 set(imgui_source
     ${CMAKE_SOURCE_DIR}/imgui/imgui.cpp
     ${CMAKE_SOURCE_DIR}/imgui/imgui_draw.cpp
@@ -26,7 +28,6 @@ set(imgui_source
 add_library(
     main SHARED
     ${CMAKE_SOURCE_DIR}/main.cpp
-    ${CMAKE_SOURCE_DIR}/android_jni.cpp
     ${imgui_source}
 ) # Need for SDL android build
 
@@ -41,4 +42,5 @@ target_link_libraries(main
     PRIVATE
     $<TARGET_NAME_IF_EXISTS:SDL3::SDL3main>
     $<IF:$<TARGET_EXISTS:SDL3::SDL3>,SDL3::SDL3,SDL3::SDL3-static>
+    jila-android::jila-android
 )

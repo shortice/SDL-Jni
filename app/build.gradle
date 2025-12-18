@@ -12,11 +12,14 @@ android {
         versionName "1.0"
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_PLATFORM=android-21", "-DANDROID_STL=c++_static"
+                arguments "-DANDROID_PLATFORM=android-21", "-DANDROID_STL=c++_shared"
                 // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
             }
         }
+    }
+    buildFeatures {
+        prefab true
     }
     buildTypes {
         release {
@@ -45,5 +48,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ["*.jar", "*.aar"], dir: "libs")
+    implementation project(':jila-android')
 }

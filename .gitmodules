@@ -4,3 +4,6 @@
 [submodule "app/jni/imgui"]
 	path = app/jni/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "jila-android"]
+	path = jila-android
+	url = https://github.com/shortice/jila-android

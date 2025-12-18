@@ -38,3 +38,6 @@ build
 
 # Gradle
 .gradle
+
+.idea
+local.properties

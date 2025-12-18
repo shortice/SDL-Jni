@@ -1,9 +1,7 @@
 // Using new SDL callbacks feature.
 // More info: https://wiki.libsdl.org/SDL3/README-main-functions
-#include "SDL3/SDL_events.h"
-#include "malloc.h"
-
 #define SDL_MAIN_USE_CALLBACKS 1
+#include "malloc.h"
 #include "SDL3/SDL_main.h"
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_system.h"
@@ -11,8 +9,8 @@
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
+#include "jila-android.hpp"
 
-#include "android_jni.hpp"
 
 struct AppState {
     SDL_Window* window;
@@ -20,25 +18,8 @@ struct AppState {
     ImGuiIO* io;
 };
 
-struct Notification {
-
-    char* title;
-    char* message;
-    static const Uint8 size = 50;
-
-    Notification() {
-        title = (char*)calloc(1, size);
-        message = (char*)calloc(1, size);
-    }
-
-    ~Notification() {
-        free(title);
-        free(message);
-    }
-};
 
 static SDL_Rect rect {};
-static Notification notification = Notification();
 
 void handle_resize(SDL_Window* window) {
     SDL_GetWindowSafeArea(
@@ -113,10 +94,35 @@ SDL_AppResult SDL_AppInit(void** state, int argc, char** argv) {
 
     handle_resize(window);
 
+    // Get SDL Android Activity Context
+    JNIEnv* env = (JNIEnv*)SDL_GetAndroidJNIEnv();
+    jobject activity = (jobject)SDL_GetAndroidActivity();
+    jclass activityClass = env->GetObjectClass(activity);
+    jmethodID getApplicationContext = env->GetMethodID(
+        activityClass, 
+        "getApplicationContext", 
+        "()Landroid/content/Context;"
+    );
+    jobject context = env->CallObjectMethod(activity, getApplicationContext);
+
+    Jila_Android_InitContext(env, context);
+    Jila_Android_CreateNotificationChannel(
+        "default",
+        "Default", 
+        "Default notification channel"
+    );
+
+    // Clear jni resources
+    env->DeleteLocalRef(activity);
+    env->DeleteLocalRef(activityClass);
+    env->DeleteLocalRef(context);
+
     return SDL_APP_CONTINUE;
 }
 
 static bool isError = false;
+static char* notification_title = (char*)calloc(1, 50);
+static char* notification_text = (char*)calloc(1, 50);
 
 SDL_AppResult SDL_AppIterate(void* state) {
     ImGui_ImplSDLRenderer3_NewFrame();
@@ -131,6 +137,8 @@ SDL_AppResult SDL_AppIterate(void* state) {
         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
     );
 
+    static char* err = (char*)"";
+
     ImGui::TextWrapped("If notification doesnt work, click on this button:");
     if (ImGui::Button("Grant permission")) {
         RequestNotificationPermission();
@@ -139,30 +147,31 @@ SDL_AppResult SDL_AppIterate(void* state) {
     ImGui::Separator();
 
     ImGui::Text("Title: ");
-    ImGui::InputText("##title", notification.title, notification.size);
+    ImGui::InputText("##title", notification_title, 50);
 
     ImGui::Text("Message: ");
-    ImGui::InputText("##message", notification.message, notification.size);
+    ImGui::InputText("##message", notification_text, 50);
 
-    if (ImGui::Button("Push")) {
-        if (
-            strlen(notification.title) > 0 and
-            strlen(notification.message) > 0
-        ) {
-            PushNotification(
-                notification.title,
-                notification.message
-            );
-            isError = false;
-        } else {
-            isError = true;
-        }
+    ImGui::Separator();
+
+    ImGui::Text("%s\n%s", "Error:", err);
+
+    if (ImGui::Button("GetError")) {
+        err = Jila_Android_GetError();
     }
 
-    if (isError) {
-        ImGui::Separator();
-
-        ImGui::TextWrapped("Please type some words on title and message.");
+    if (ImGui::Button("Push Notification")) {
+        Jila_Android_PushNotification(
+            "default", 
+            1, 
+            notification_title, 
+            notification_text, 
+            // Note. This call maybe slow, need cache GetResID value
+            Jila_Android_GetResID(
+                "ic_launcher",
+                "drawable"
+            )
+        );
     }
 
     ImGui::End();
@@ -206,6 +215,9 @@ void SDL_AppQuit(void* state, SDL_AppResult result) {
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
+
+    free(notification_text);
+    free(notification_title);
 
     SDL_DestroyRenderer(
         ((AppState*)state)->renderer
