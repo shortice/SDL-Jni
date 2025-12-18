@@ -1,18 +1,6 @@
 # SDL-Jni
 
-⚠️ Article in the link of this repository written in Russian. And screenshot the same.
-
-Sample code how use JNI in SDL3.
-This code implement the simple notification API for SDL (including Android API 26+
-and new notification permission).
-
-Its uses Dear ImGui for simple UI and SDL3 for multimedia API.
-
-Check source code in there files if you need details:
-* app/jni/android_jni.cpp <- JNI code
-* app/src/main/java/<...>/SDLActivity.java [lines from 66 to 122 and line 332] <-
-notification implementation
-* app/src/main/AndroidManifest.xml <- line 45 need for notification on latest Android versions
+Jila-Android + SDL3 Jni example.
 
 # How build this app?
 
