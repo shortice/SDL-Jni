@@ -10,6 +10,7 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 #include "jila-android.hpp"
+#include <string>
 
 
 struct AppState {
@@ -115,7 +116,6 @@ SDL_AppResult SDL_AppInit(void** state, int argc, char** argv) {
     // Clear jni resources
     env->DeleteLocalRef(activity);
     env->DeleteLocalRef(activityClass);
-    env->DeleteLocalRef(context);
 
     return SDL_APP_CONTINUE;
 }
@@ -123,6 +123,13 @@ SDL_AppResult SDL_AppInit(void** state, int argc, char** argv) {
 static bool isError = false;
 static char* notification_title = (char*)calloc(1, 50);
 static char* notification_text = (char*)calloc(1, 50);
+
+static std::string folderPath;
+static std::string item;
+
+void OpenFolderCallback(const char* path) {
+    folderPath = path;
+}
 
 SDL_AppResult SDL_AppIterate(void* state) {
     ImGui_ImplSDLRenderer3_NewFrame();
@@ -157,7 +164,7 @@ SDL_AppResult SDL_AppIterate(void* state) {
     ImGui::Text("%s\n%s", "Error:", err);
 
     if (ImGui::Button("GetError")) {
-        err = Jila_Android_GetError();
+        err = (char*)Jila_Android_GetError();
     }
 
     if (ImGui::Button("Push Notification")) {
@@ -173,6 +180,33 @@ SDL_AppResult SDL_AppIterate(void* state) {
             )
         );
     }
+
+    ImGui::Separator();
+
+    // File OpenFolder Dialog + FileIterator
+
+    if (ImGui::Button("Open folder")) {
+        Jila_Android_OpenFolder(&OpenFolderCallback);
+    }
+
+    if (ImGui::Button("Get first item from opened folder")) {
+        if (!folderPath.empty()) {
+            const char** files = Jila_Android_IterateFiles(
+                folderPath.c_str(),
+                false
+            );
+
+            if (files) {
+                item = files[0];
+                free(files);
+            } else {
+                item = "";
+            }
+        }
+    }
+
+    ImGui::TextWrapped("Current selected folder path: %s", folderPath.c_str());
+    ImGui::TextWrapped("Current file item path: %s", item.c_str());
 
     ImGui::End();
 

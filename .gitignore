@@ -41,3 +41,6 @@ build
 
 .idea
 local.properties
+compile_commands.json
+.classpath
+*.class
